@@ -45,3 +45,6 @@ app-example
 # VSCode personal settings ignore
 .vscode/*
 !.vscode/extensions.json
+
+# Windows special device files
+nul

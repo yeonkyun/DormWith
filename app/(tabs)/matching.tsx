@@ -1,10 +1,43 @@
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useEffect } from 'react';
+import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
+import { useMatchingStore } from '@/stores/matchingStore';
 
 export default function MatchingScreen() {
+  const router = useRouter();
+  const {
+    recommendedUsers,
+    rejectUser,
+    likeUser,
+    initializeStore,
+    getStatusCounts,
+  } = useMatchingStore();
+
+  useEffect(() => {
+    initializeStore();
+  }, []);
+
+  const counts = getStatusCounts();
+
+  const handleReject = (userId: string) => {
+    rejectUser(userId);
+  };
+
+  const handleLike = (userId: string) => {
+    likeUser(userId);
+    // 관심 표시 후 상세 정보 페이지로 이동
+    const user = recommendedUsers.find((u) => u.id === userId);
+    if (user) {
+      router.push({
+        pathname: '/matching/[id]',
+        params: { id: userId, name: user.name },
+      });
+    }
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -17,14 +50,20 @@ export default function MatchingScreen() {
         {/* 매칭 상태 */}
         <View style={styles.statusCard}>
           <ThemedText type="subtitle">현재 매칭 상태</ThemedText>
-          <View style={styles.statusInfo}>
+          <TouchableOpacity
+            style={styles.statusInfo}
+            onPress={() => router.push('/matching/waiting')}
+          >
             <ThemedText style={styles.statusText}>대기 중인 매칭</ThemedText>
-            <ThemedText style={styles.statusNumber}>3명</ThemedText>
-          </View>
-          <View style={styles.statusInfo}>
+            <ThemedText style={styles.statusNumber}>{counts.waiting}명</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statusInfo}
+            onPress={() => router.push('/matching/requests')}
+          >
             <ThemedText style={styles.statusText}>받은 요청</ThemedText>
-            <ThemedText style={styles.statusNumber}>5건</ThemedText>
-          </View>
+            <ThemedText style={styles.statusNumber}>{counts.received}건</ThemedText>
+          </TouchableOpacity>
         </View>
 
         {/* 추천 룸메이트 */}
@@ -36,40 +75,51 @@ export default function MatchingScreen() {
             </ThemedText>
           </View>
 
-          {[1, 2, 3, 4, 5].map((item) => (
-            <View key={item} style={styles.matchCard}>
-              <View style={styles.matchProfile}>
-                <View style={styles.profileImage}>
-                  <Ionicons name="person" size={32} color="#999" />
-                </View>
-                <View style={styles.matchInfo}>
-                  <ThemedText style={styles.matchName}>룸메이트 {item}</ThemedText>
-                  <ThemedText style={styles.matchMeta}>
-                    {item % 2 === 0 ? '여성' : '남성'} • {20 + item}살 • {item}학년
-                  </ThemedText>
-                  <View style={styles.tagContainer}>
-                    <View style={styles.tag}>
-                      <ThemedText style={styles.tagText}>깔끔함</ThemedText>
-                    </View>
-                    <View style={styles.tag}>
-                      <ThemedText style={styles.tagText}>조용함</ThemedText>
-                    </View>
-                    <View style={styles.tag}>
-                      <ThemedText style={styles.tagText}>아침형</ThemedText>
+          {recommendedUsers.length > 0 ? (
+            recommendedUsers.map((user) => (
+              <View key={user.id} style={styles.matchCard}>
+                <View style={styles.matchProfile}>
+                  <View style={styles.profileImage}>
+                    <Ionicons name="person" size={32} color="#999" />
+                  </View>
+                  <View style={styles.matchInfo}>
+                    <ThemedText style={styles.matchName}>{user.name}</ThemedText>
+                    <ThemedText style={styles.matchMeta}>
+                      {user.gender} • {user.age}살 • {user.grade}학년
+                    </ThemedText>
+                    <View style={styles.tagContainer}>
+                      {user.tags.slice(0, 3).map((tag, idx) => (
+                        <View key={idx} style={styles.tag}>
+                          <ThemedText style={styles.tagText}>{tag}</ThemedText>
+                        </View>
+                      ))}
                     </View>
                   </View>
                 </View>
+                <View style={styles.matchActions}>
+                  <TouchableOpacity
+                    style={styles.rejectButton}
+                    onPress={() => handleReject(user.id)}
+                  >
+                    <ThemedText style={styles.rejectButtonText}>거절</ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.likeButton}
+                    onPress={() => handleLike(user.id)}
+                  >
+                    <ThemedText style={styles.likeButtonText}>관심</ThemedText>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.matchActions}>
-                <TouchableOpacity style={styles.rejectButton}>
-                  <ThemedText style={styles.rejectButtonText}>거절</ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.likeButton}>
-                  <ThemedText style={styles.likeButtonText}>관심</ThemedText>
-                </TouchableOpacity>
-              </View>
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="happy-outline" size={48} color={Colors.textLight} />
+              <ThemedText style={styles.emptyText}>
+                추천할 사용자가 없습니다
+              </ThemedText>
             </View>
-          ))}
+          )}
         </View>
       </ScrollView>
     </ThemedView>
@@ -216,5 +266,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: Colors.textLight,
   },
 });
