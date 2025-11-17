@@ -17,19 +17,19 @@ export default function HomeScreen() {
         {/* 빠른 메뉴 */}
         <View style={styles.quickMenuContainer}>
           <TouchableOpacity style={styles.quickMenuItem}>
-            <Ionicons name="document-text" size={32} color={Colors.tint} />
+            <Ionicons name="document-text" size={32} color={Colors.primary} />
             <ThemedText style={styles.quickMenuText}>게시판</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickMenuItem}>
-            <Ionicons name="chatbubbles" size={32} color={Colors.tint} />
+            <Ionicons name="chatbubbles" size={32} color={Colors.primary} />
             <ThemedText style={styles.quickMenuText}>채팅</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickMenuItem}>
-            <Ionicons name="people" size={32} color={Colors.tint} />
+            <Ionicons name="people" size={32} color={Colors.primary} />
             <ThemedText style={styles.quickMenuText}>매칭</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickMenuItem}>
-            <Ionicons name="person" size={32} color={Colors.tint} />
+            <Ionicons name="person" size={32} color={Colors.primary} />
             <ThemedText style={styles.quickMenuText}>내정보</ThemedText>
           </TouchableOpacity>
         </View>
