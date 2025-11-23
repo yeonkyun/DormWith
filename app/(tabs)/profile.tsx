@@ -1,100 +1,140 @@
+import { useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 
+const statItems = [
+  { label: '내 글', value: '12' },
+  { label: '댓글', value: '48' },
+  { label: '관심', value: '9' },
+];
+
+const activityMenu = [
+  { label: '내가 쓴 글', icon: 'document-text' },
+  { label: '댓글 단 글', icon: 'chatbubble-ellipses' },
+  { label: '좋아요한 글', icon: 'heart' },
+  { label: '북마크', icon: 'bookmark' },
+];
+
+const matchingMenu = [
+  { label: '매칭 프로필', icon: 'person' },
+  { label: '매칭 히스토리', icon: 'time' },
+  { label: '관심 목록', icon: 'heart' },
+];
+
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [status, setStatus] = useState<'online' | 'offline'>('online');
+
+  const toggleStatus = () => {
+    setStatus((prev) => (prev === 'online' ? 'offline' : 'online'));
+  };
 
   return (
-    <ThemedView style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <ThemedText style={styles.headerTitle}>내정보</ThemedText>
-      </View>
-
-      <ScrollView style={styles.scrollView}>
-        {/* 프로필 카드 */}
-        <View style={styles.profileCard}>
-          <View style={styles.profileImageLarge}>
-            <Ionicons name="person" size={40} color="#999" />
+    <ThemedView style={[styles.container, { paddingTop: insets.top || 12 }]}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.topBar}>
+          <View style={styles.topLeft}>
+            <TouchableOpacity style={styles.appIcon}>
+              <View style={styles.appIconInner}>
+                <ThemedText style={styles.appIconText}>DW</ThemedText>
+              </View>
+            </TouchableOpacity>
+            <ThemedText style={styles.headerTitle}>내정보</ThemedText>
           </View>
-          <ThemedText style={styles.profileName}>홍길동</ThemedText>
-          <ThemedText style={styles.profileInfo}>남성 • 22살 • 2학년</ThemedText>
+          <View style={styles.topActions}>
+            <TouchableOpacity
+              style={styles.actionIcon}
+              onPress={() => router.push('/settings')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="settings-outline" size={22} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.profileCard}>
+          <View style={styles.avatarWrap}>
+            <Ionicons name="person-circle" size={60} color={Colors.primary} />
+          </View>
+          <TouchableOpacity style={styles.statusBadge} onPress={toggleStatus} activeOpacity={0.8}>
+            <View
+              style={[
+                styles.statusDot,
+                status === 'online' ? styles.dotOnline : styles.dotOffline,
+              ]}
+            />
+            <ThemedText
+              style={[
+                styles.statusText,
+                status === 'online' ? styles.statusOn : styles.statusOff,
+              ]}
+            >
+              {status === 'online' ? '매칭 ON' : '매칭 OFF'}
+            </ThemedText>
+          </TouchableOpacity>
+          <ThemedText style={styles.name}>홍길동</ThemedText>
+          <ThemedText style={styles.meta}>컴퓨터공학부 · 22살 · 2학년</ThemedText>
+          <View style={styles.statRow}>
+            {statItems.map((item) => (
+              <View key={item.label} style={styles.statItem}>
+                <ThemedText style={styles.statValue}>{item.value}</ThemedText>
+                <ThemedText style={styles.statLabel}>{item.label}</ThemedText>
+              </View>
+            ))}
+          </View>
           <TouchableOpacity style={styles.editButton}>
             <ThemedText style={styles.editButtonText}>프로필 수정</ThemedText>
           </TouchableOpacity>
         </View>
 
-        {/* 나의 활동 */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            나의 활동
-          </ThemedText>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>내가 쓴 글</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>댓글 단 글</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>좋아요한 글</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>북마크</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
+        <View style={styles.block}>
+          <View style={styles.blockHeader}>
+            <ThemedText style={styles.blockTitle}>나의 활동</ThemedText>
+          </View>
+          <View style={styles.menuList}>
+            {activityMenu.map((item) => (
+              <TouchableOpacity key={item.label} style={styles.menuRow}>
+                <View style={styles.menuLeft}>
+                  <Ionicons name={item.icon} size={18} color={Colors.primary} />
+                  <ThemedText style={styles.menuText}>{item.label}</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        {/* 매칭 정보 */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            매칭 정보
-          </ThemedText>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>나의 매칭 프로필</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>매칭 히스토리</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>관심 목록</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
+        <View style={styles.block}>
+          <View style={styles.blockHeader}>
+            <ThemedText style={styles.blockTitle}>매칭</ThemedText>
+          </View>
+          <View style={styles.menuList}>
+            {matchingMenu.map((item) => (
+              <TouchableOpacity key={item.label} style={styles.menuRow}>
+                <View style={styles.menuLeft}>
+                  <Ionicons name={item.icon} size={18} color={Colors.primary} />
+                  <ThemedText style={styles.menuText}>{item.label}</ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        {/* 설정 */}
-        <View style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            설정
-          </ThemedText>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>알림 설정</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>개인정보 설정</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>고객센터</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={styles.menuText}>약관 및 정책</ThemedText>
-            <ThemedText style={styles.menuArrow}>›</ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        {/* 계정 */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.menuItem}>
-            <ThemedText style={[styles.menuText, styles.logoutText]}>로그아웃</ThemedText>
+        <View style={styles.block}>
+          <TouchableOpacity style={styles.menuRow} onPress={() => router.replace('/login')}>
+            <View style={styles.menuLeft}>
+              <Ionicons name="log-out-outline" size={18} color="#ff5252" />
+              <ThemedText style={[styles.menuText, styles.logoutText]}>로그아웃</ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textLight} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -105,90 +145,190 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundLight,
+    backgroundColor: Colors.backgroundGray,
   },
-  header: {
+  content: {
+    paddingVertical: 16,
+    paddingBottom: 24,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: Colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    marginBottom: 12,
+  },
+  topLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  appIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  appIconInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appIconText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.primary,
+  },
+  topActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionIcon: {
+    padding: 6,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '800',
     color: Colors.text,
   },
-  scrollView: {
-    flex: 1,
-  },
   profileCard: {
-    alignItems: 'center',
-    paddingVertical: 40,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 16,
     backgroundColor: Colors.background,
-    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    alignItems: 'center',
     gap: 8,
   },
-  profileImageLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#e0e0e0',
-    justifyContent: 'center',
+  avatarWrap: {
     alignItems: 'center',
-    marginBottom: 8,
+    gap: 8,
   },
-  profileName: {
+  statusBadge: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: Colors.backgroundGray,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  dotOnline: {
+    backgroundColor: Colors.primary,
+  },
+  dotOffline: {
+    backgroundColor: Colors.textLight,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  statusOn: {
+    color: Colors.primaryDark,
+  },
+  statusOff: {
+    color: Colors.textSecondary,
+  },
+  name: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    color: Colors.text,
   },
-  profileInfo: {
-    fontSize: 14,
-    opacity: 0.6,
+  meta: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  statRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
   editButton: {
-    marginTop: 12,
-    paddingHorizontal: 28,
+    marginTop: 6,
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: 24,
+    borderRadius: 12,
     backgroundColor: Colors.primary,
   },
   editButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontWeight: '800',
+    color: '#fff',
   },
-  section: {
-    paddingVertical: 16,
+  block: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
     backgroundColor: Colors.background,
-    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
-  sectionTitle: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    fontSize: 15,
-  },
-  menuItem: {
+  blockHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    marginBottom: 6,
+  },
+  blockTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  menuList: {
+    gap: 6,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  menuLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   menuText: {
-    fontSize: 15,
-  },
-  menuArrow: {
-    fontSize: 20,
-    opacity: 0.3,
+    fontSize: 14,
+    color: Colors.text,
+    fontWeight: '700',
   },
   logoutText: {
     color: '#ff5252',
