@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -7,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
+import { useMatchingStatus } from '@/context/matching-status';
 
 const statItems = [
   { label: '내 글', value: '12' },
@@ -22,18 +22,28 @@ const activityMenu = [
 ];
 
 const matchingMenu = [
-  { label: '매칭 프로필', icon: 'person' },
-  { label: '매칭 히스토리', icon: 'time' },
-  { label: '관심 목록', icon: 'heart' },
+  { label: '매칭 프로필', icon: 'person', route: '/matching-profile' },
+  { label: '매칭 히스토리', icon: 'time', route: '/matching-history' },
+  { label: '관심 목록', icon: 'heart', route: '/matching-favorites' },
 ];
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [status, setStatus] = useState<'online' | 'offline'>('online');
+  const { matchingOn, setMatchingOn } = useMatchingStatus();
 
   const toggleStatus = () => {
-    setStatus((prev) => (prev === 'online' ? 'offline' : 'online'));
+    const next = !matchingOn;
+    Alert.alert(
+      '매칭 상태 변경',
+      next
+        ? '매칭을 켜면 다른 사용자에게 추천됩니다.'
+        : '매칭을 끄면 추천/요청에서 제외됩니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        { text: next ? '매칭 켜기' : '매칭 끄기', onPress: () => setMatchingOn(next) },
+      ],
+    );
   };
 
   return (
@@ -63,22 +73,22 @@ export default function ProfileScreen() {
           <View style={styles.avatarWrap}>
             <Ionicons name="person-circle" size={60} color={Colors.primary} />
           </View>
-          <TouchableOpacity style={styles.statusBadge} onPress={toggleStatus} activeOpacity={0.8}>
-            <View
-              style={[
-                styles.statusDot,
-                status === 'online' ? styles.dotOnline : styles.dotOffline,
-              ]}
-            />
-            <ThemedText
-              style={[
-                styles.statusText,
-                status === 'online' ? styles.statusOn : styles.statusOff,
-              ]}
-            >
-              {status === 'online' ? '매칭 ON' : '매칭 OFF'}
-            </ThemedText>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.statusBadge} onPress={toggleStatus} activeOpacity={0.8}>
+              <View
+                style={[
+                  styles.statusDot,
+                  matchingOn ? styles.dotOnline : styles.dotOffline,
+                ]}
+              />
+              <ThemedText
+                style={[
+                  styles.statusText,
+                  matchingOn ? styles.statusOn : styles.statusOff,
+                ]}
+              >
+                {matchingOn ? '매칭 ON' : '매칭 OFF'}
+              </ThemedText>
+            </TouchableOpacity>
           <ThemedText style={styles.name}>홍길동</ThemedText>
           <ThemedText style={styles.meta}>컴퓨터공학부 · 22살 · 2학년</ThemedText>
           <View style={styles.statRow}>
@@ -117,7 +127,12 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.menuList}>
             {matchingMenu.map((item) => (
-              <TouchableOpacity key={item.label} style={styles.menuRow}>
+              <TouchableOpacity
+                key={item.label}
+                style={styles.menuRow}
+                onPress={() => item.route && router.push(item.route)}
+                activeOpacity={0.8}
+              >
                 <View style={styles.menuLeft}>
                   <Ionicons name={item.icon} size={18} color={Colors.primary} />
                   <ThemedText style={styles.menuText}>{item.label}</ThemedText>

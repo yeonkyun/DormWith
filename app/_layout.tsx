@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { MatchingStatusProvider } from '@/context/matching-status';
+import { MatchingFavoritesProvider } from '@/context/matching-favorites';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -14,26 +16,38 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack initialRouteName="onboarding">
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen name="onboarding" options={{ title: '온보딩', headerShown: false }} />
-        <Stack.Screen name="start" options={{ title: '시작하기', headerShown: false }} />
-        <Stack.Screen name="signup" options={{ title: '회원가입', headerShown: false }} />
-        <Stack.Screen name="login" options={{ title: '로그인', headerShown: false }} />
-        <Stack.Screen name="find-id" options={{ title: '아이디 찾기', headerShown: false }} />
-        <Stack.Screen
-          name="reset-password"
-          options={{ title: '비밀번호 찾기', headerShown: false }}
-        />
-        <Stack.Screen name="waiting" options={{ title: '대기 중', headerShown: false }} />
-        <Stack.Screen name="requests" options={{ title: '받은 요청', headerShown: false }} />
-        <Stack.Screen name="settings" options={{ title: '설정', headerShown: false }} />
-        <Stack.Screen
-          name="matching-profile"
-          options={{ title: '매칭 프로필', headerShown: false }}
-        />
-      </Stack>
+      <MatchingStatusProvider>
+        <MatchingFavoritesProvider>
+          <Stack initialRouteName="onboarding">
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack.Screen name="onboarding" options={{ title: '온보딩', headerShown: false }} />
+            <Stack.Screen name="start" options={{ title: '시작하기', headerShown: false }} />
+            <Stack.Screen name="signup" options={{ title: '회원가입', headerShown: false }} />
+            <Stack.Screen name="login" options={{ title: '로그인', headerShown: false }} />
+            <Stack.Screen name="find-id" options={{ title: '아이디 찾기', headerShown: false }} />
+            <Stack.Screen
+              name="reset-password"
+              options={{ title: '비밀번호 찾기', headerShown: false }}
+            />
+            <Stack.Screen name="waiting" options={{ title: '대기 중', headerShown: false }} />
+            <Stack.Screen name="requests" options={{ title: '받은 요청', headerShown: false }} />
+            <Stack.Screen name="settings" options={{ title: '설정', headerShown: false }} />
+            <Stack.Screen
+              name="matching-profile"
+              options={{ title: '매칭 프로필', headerShown: false }}
+            />
+            <Stack.Screen
+              name="matching-history"
+              options={{ title: '매칭 히스토리', headerShown: false }}
+            />
+            <Stack.Screen
+              name="matching-favorites"
+              options={{ title: '관심 목록', headerShown: false }}
+            />
+          </Stack>
+        </MatchingFavoritesProvider>
+      </MatchingStatusProvider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

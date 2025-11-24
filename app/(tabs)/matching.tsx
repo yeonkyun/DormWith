@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
-import { useRouter } from 'expo-router';
+import { useMatchingStatus } from '@/context/matching-status';
+import { useMatchingFavorites } from '@/context/matching-favorites';
 
 type MatchProfile = {
   name: string;
@@ -19,6 +22,7 @@ const filters = ['전체', '아침형', '저녁형', '깔끔', '조용', '운동
 
 const recommended: MatchProfile[] = [
   {
+    id: 'match-1',
     name: '익명',
     major: '컴퓨터공학부',
     gender: '남자',
@@ -26,6 +30,7 @@ const recommended: MatchProfile[] = [
     tags: ['아침형', '깔끔', 'INTJ'],
   },
   {
+    id: 'match-2',
     name: '익명',
     major: 'AI소프트웨어학과',
     gender: '여자',
@@ -33,6 +38,7 @@ const recommended: MatchProfile[] = [
     tags: ['조용', '저녁형', 'INFP'],
   },
   {
+    id: 'match-3',
     name: '익명',
     major: '경영학부',
     gender: '남자',
@@ -40,6 +46,7 @@ const recommended: MatchProfile[] = [
     tags: ['운동', '아침형', 'ESTJ'],
   },
   {
+    id: 'match-4',
     name: '익명',
     major: '간호학과',
     gender: '여자',
@@ -51,9 +58,9 @@ const recommended: MatchProfile[] = [
 export default function MatchingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { matchingOn, setMatchingOn } = useMatchingStatus();
   const [activeFilter, setActiveFilter] = useState('전체');
-  const [liked, setLiked] = useState<Record<string, boolean>>({});
-  const [matchingOn, setMatchingOn] = useState(true);
+  const { isFavorite, toggleFavorite } = useMatchingFavorites();
 
   const toggleLike = (key: string) => {
     setLiked((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -62,12 +69,14 @@ export default function MatchingScreen() {
   const handleToggleMatching = () => {
     const next = !matchingOn;
     Alert.alert(
-      next ? '매칭 ON' : '매칭 OFF',
-      next ? '매칭을 켤까요?' : '매칭을 끌까요?',
+      '매칭 상태 변경',
+      next
+        ? '매칭을 켜면 다른 사용자에게 추천됩니다.'
+        : '매칭을 끄면 추천/요청에서 제외됩니다.',
       [
         { text: '취소', style: 'cancel' },
         {
-          text: '확인',
+          text: next ? '매칭 켜기' : '매칭 끄기',
           onPress: () => setMatchingOn(next),
         },
       ],
@@ -97,7 +106,20 @@ export default function MatchingScreen() {
         </View>
 
         <View style={styles.hero}>
-          <ThemedText style={styles.heroTitle}>오늘의 매칭</ThemedText>
+          <View style={styles.toggleRow}>
+            <ThemedText style={styles.heroTitle}>매칭 상태</ThemedText>
+            <TouchableOpacity
+              style={[styles.togglePill, matchingOn ? styles.toggleOn : styles.toggleOff]}
+              activeOpacity={0.8}
+              onPress={handleToggleMatching}
+            >
+              <ThemedText
+                style={[styles.toggleText, matchingOn ? styles.toggleTextOn : styles.toggleTextOff]}
+              >
+                {matchingOn ? 'ON' : 'OFF'}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
           <ThemedText style={styles.heroSubtitle}>비슷한 생활 패턴의 룸메를 만나보세요.</ThemedText>
           <View style={styles.heroChips}>
             <TouchableOpacity
@@ -124,21 +146,6 @@ export default function MatchingScreen() {
           >
             <Ionicons name="sparkles" size={18} color={Colors.primary} />
             <ThemedText style={styles.profileCTAText}>매칭 프로필 꾸미기</ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.toggleRow}>
-          <ThemedText style={styles.toggleLabel}>매칭 상태</ThemedText>
-          <TouchableOpacity
-            style={[styles.togglePill, matchingOn ? styles.toggleOn : styles.toggleOff]}
-            activeOpacity={0.8}
-            onPress={handleToggleMatching}
-          >
-            <ThemedText
-              style={[styles.toggleText, matchingOn ? styles.toggleTextOn : styles.toggleTextOff]}
-            >
-              {matchingOn ? 'ON' : 'OFF'}
-            </ThemedText>
           </TouchableOpacity>
         </View>
 
@@ -176,12 +183,11 @@ export default function MatchingScreen() {
         </View>
 
         <View style={styles.recList}>
-          {recommended.map((item, idx) => {
-            const key = `${item.name}-${item.major}-${item.dorm}-${idx}`;
-            const likedState = liked[key];
+          {recommended.map((item) => {
+            const likedState = isFavorite(item.id);
 
             return (
-              <View key={key} style={styles.recCard}>
+              <View key={item.id} style={styles.recCard}>
                 <View style={styles.recTop}>
                   <Ionicons name="person-circle" size={42} color={Colors.primary} />
                   <View style={styles.recInfo}>
@@ -194,7 +200,16 @@ export default function MatchingScreen() {
                   </View>
                   <TouchableOpacity
                     style={styles.heartBtn}
-                    onPress={() => toggleLike(key)}
+                    onPress={() =>
+                      toggleFavorite({
+                        id: item.id,
+                        name: `${item.name} • ${item.major}`,
+                        major: item.major,
+                        gender: item.gender,
+                        dorm: item.dorm,
+                        tags: item.tags,
+                      })
+                    }
                     activeOpacity={0.8}
                   >
                     <Ionicons
@@ -302,7 +317,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: '#fff',
-    marginBottom: 6,
+    marginBottom: 0,
   },
   heroSubtitle: {
     color: '#f1f5ff',
@@ -352,8 +367,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 20,
-    marginBottom: 8,
+    marginTop: 0,
   },
   toggleLabel: {
     fontSize: 14,
@@ -361,8 +375,8 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   togglePill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: Colors.borderLight,
